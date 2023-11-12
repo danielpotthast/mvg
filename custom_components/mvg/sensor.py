@@ -18,10 +18,8 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 _LOGGER = logging.getLogger(__name__)
 
 CONF_NEXT_DEPARTURE = "nextdeparture"
-
 CONF_STATION = "station"
 CONF_DESTINATIONS = "destinations"
-CONF_DIRECTIONS = "directions"
 CONF_LINES = "lines"
 CONF_PRODUCTS = "products"
 CONF_TIMEOFFSET = "timeoffset"
@@ -31,16 +29,6 @@ NONE_ICON = "mdi:clock"
 
 DEFAULT_PRODUCT = ["U-Bahn", "Tram", "Bus", "ExpressBus", "S-Bahn", "Nachteule"]
 
-ICONS = {
-    "U-Bahn": "mdi:subway",
-    "Tram": "mdi:tram",
-    "Bus": "mdi:bus",
-    "ExpressBus": "mdi:bus",
-    "S-Bahn": "mdi:train",
-    "Nachteule": "mdi:owl",
-    "SEV": "mdi:checkbox-blank-circle-outline",
-    "-": "mdi:clock",
-}
 ATTRIBUTION = "Data provided by mvg.de"
 
 SCAN_INTERVAL = timedelta(seconds=30)
@@ -51,7 +39,6 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
             {
                 vol.Required(CONF_STATION): cv.string,
                 vol.Optional(CONF_DESTINATIONS, default=[""]): cv.ensure_list_csv,
-                vol.Optional(CONF_DIRECTIONS, default=[""]): cv.ensure_list_csv,
                 vol.Optional(CONF_LINES, default=[""]): cv.ensure_list_csv,
                 vol.Optional(CONF_PRODUCTS, default=None): cv.ensure_list_csv,
                 vol.Optional(CONF_TIMEOFFSET, default=0): cv.positive_int,
@@ -73,7 +60,7 @@ def setup_platform(
     sensors = []
     for nextdeparture in config[CONF_NEXT_DEPARTURE]:
         sensors.append(
-            MVGLiveSensor(
+            MVGSensor(
                 nextdeparture.get(CONF_STATION),
                 nextdeparture.get(CONF_DESTINATIONS),
                 nextdeparture.get(CONF_LINES),
@@ -85,9 +72,8 @@ def setup_platform(
         )
     add_entities(sensors, True)
 
-
-class MVGLiveSensor(SensorEntity):
-    """Implementation of an MVG Live sensor."""
+class MVGSensor(SensorEntity):
+    """Implementation of an MVG sensor."""
 
     _attr_attribution = ATTRIBUTION
 
@@ -104,7 +90,7 @@ class MVGLiveSensor(SensorEntity):
         """Initialize the sensor."""
         self._station = station
         self._name = name
-        self.data = MVGLiveData(
+        self.data = MVGData(
             station, destinations, lines, products, timeoffset, number
         )
         self._state = None
@@ -164,8 +150,7 @@ def _get_minutes_until_departure(departure_time: int) -> int:
     minutes_difference = int(time_difference / 60.0)
     return minutes_difference
 
-
-class MVGLiveData:
+class MVGData:
     """Pull data from the mvg.de web page."""
 
     def __init__(self, station, destinations, lines, products, timeoffset, number):
