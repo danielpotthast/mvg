@@ -1,3 +1,11 @@
+> [!WARNING]
+> This project is not an official project from the Münchner Verkehrsgesellschaft (MVG).
+> Therefore, the following usage restrictions from the MVG Imprint do apply to all users of this home assistant integration:
+>
+> > Our systems are used for direct customer interaction. The processing of our content or data by third parties requires our express consent. For private, non-commercial purposes, moderate use is tolerated without our explicit consent. Any form of data mining does not constitute moderate use. We reserve the right to revoke this permission in principle or in individual cases. Please direct any questions to: redaktion@mvg.de<br>
+> >
+> > (from https://www.mvg.de/impressum.html, accessed on 13. Nov 2023)
+
 # MVG
 
 The `mvg` sensor will give you the departure time of the next bus, tram, subway, or train at the next station or stop in the Munich public transport network. Additional details such as the line number and destination are present in the attributes.
