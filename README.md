@@ -6,9 +6,13 @@
 > >
 > > (from https://www.mvg.de/impressum.html, accessed on 13. Nov 2023)
 
-# MVG
+# HACS-Plugin: MVG
 
 The `mvg` sensor will give you the departure time of the next bus, tram, subway, or train at the next station or stop in the Munich public transport network. Additional details such as the line number and destination are present in the attributes.
+
+## Credits
+
+I've copied and adapted the code from [fellnerse](https://github.com/fellnerse)’s [PR](https://github.com/home-assistant/core/pull/97271).
 
 ## Configuration
 
