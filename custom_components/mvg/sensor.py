@@ -27,7 +27,7 @@ CONF_NUMBER = "number"
 
 NONE_ICON = "mdi:clock"
 
-DEFAULT_PRODUCT = ["U-Bahn", "Tram", "Bus", "ExpressBus", "S-Bahn", "Nachteule"]
+DEFAULT_PRODUCT = ["U-Bahn", "Tram", "Bus", "ExpressBus", "S-Bahn", "Nachtlinie"]
 
 ATTRIBUTION = "Data provided by mvg.de"
 
@@ -56,7 +56,7 @@ def setup_platform(
     add_entities: AddEntitiesCallback,
     discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
-    """Set up the MVGLive sensor."""
+    """Set up the MVG sensor."""
     sensors = []
     for nextdeparture in config[CONF_NEXT_DEPARTURE]:
         sensors.append(
