@@ -5,7 +5,7 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 import logging
 
-from mvg import MvgApi, TransportType
+from .mvgapi import MvgApi, TransportType
 import voluptuous as vol
 
 from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
@@ -185,7 +185,7 @@ class MVGData:
             _LOGGER.warning("Returned data not understood")
             return
         self.departures = []
-        for _departure in enumerate(_departures):
+        for _departure in _departures:
             # find the first departure meeting the criteria
             if (
                 "" not in self._destinations[:1]

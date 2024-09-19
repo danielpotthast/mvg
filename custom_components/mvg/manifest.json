@@ -5,6 +5,5 @@
   "codeowners": [],
   "documentation": "https://www.home-assistant.io/integrations/mvg",
   "iot_class": "cloud_polling",
-  "loggers": ["MVG"],
-  "requirements": ["mvg @ git+https://github.com/jrester/mvg.git@main"]
+  "loggers": ["MVG"]
 }
