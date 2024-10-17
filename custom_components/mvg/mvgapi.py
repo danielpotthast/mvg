@@ -16,17 +16,17 @@ MVGAPI_DEFAULT_LIMIT = 10  # API defaults to 10, limits to 100
 class Base(Enum):
     """MVG APIs base URLs."""
 
-    FIB = "https://www.mvg.de/api/fib/v3"
+    FIB = "https://www.mvg.de/api/bgw-pt/v3"
     ZDM = "https://www.mvg.de/.rest/zdm"
 
 
 class Endpoint(Enum):
     """MVG API endpoints with URLs and arguments."""
 
-    FIB_LOCATION: tuple[str, list[str]] = ("/location", ["query"])
-    FIB_NEARBY: tuple[str, list[str]] = ("/station/nearby", ["latitude", "longitude"])
+    FIB_LOCATION: tuple[str, list[str]] = ("/locations", ["query"])
+    FIB_NEARBY: tuple[str, list[str]] = ("/stations/nearby", ["latitude", "longitude"])
     FIB_DEPARTURE: tuple[str, list[str]] = (
-        "/departure",
+        "/departures",
         ["globalId", "limit", "offsetInMinutes"],
     )
     ZDM_STATION_IDS: tuple[str, list[str]] = ("/mvgStationGlobalIds", [])
