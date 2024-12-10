@@ -443,31 +443,32 @@ class MvgApi:
             assert isinstance(result, list)
 
             messages: list[dict[str, Any]] = []
-            for message in result[:50]:
-                try:
-                    messages.append(
-                        {
-                            "title": message.get("title", "Unknown"),
-                            "description": message.get("description", "No description available"),
-                            "publication": int(message.get("publication", 0) / 1000),
-                            "validFrom": int(message.get("validFrom", 0) / 1000),
-                            "validTo": int(message.get("validTo", 0) / 1000),
-                            "type": message.get("type", "Unknown"),
-                            "provider": message.get("provider", "Unknown"),
-                            "lines": [
-                                {
-                                    "label": line.get("label", "Unknown"),
-                                    "transportType": TransportType[line.get("transportType", "UNKNOWN")].value[0],
-                                    "network": line.get("network", "Unknown"),
-                                    "divaId": line.get("divaId", "Unknown"),
-                                    "sev": line.get("sev", False),
-                                }
-                                for line in message.get("lines", [])
-                            ],
-                        }
-                    )
-                except (TypeError, ValueError) as exc:
-                    raise MvgApiError("Bad API call: Could not parse message data") from exc
+            for message in result:
+                if message.get("type") == "INCIDENT":
+                    try:
+                        messages.append(
+                            {
+                                "title": message.get("title", "Unknown"),
+                                "description": message.get("description", "No description available"),
+                                "publication": int(message.get("publication", 0) / 1000),
+                                "validFrom": int(message.get("validFrom", 0) / 1000),
+                                "validTo": int(message.get("validTo", 0) / 1000),
+                                "type": message.get("type", "Unknown"),
+                                "provider": message.get("provider", "Unknown"),
+                                "lines": [
+                                    {
+                                        "label": line.get("label", "Unknown"),
+                                        "transportType": TransportType[line.get("transportType", "UNKNOWN")].value[0],
+                                        "network": line.get("network", "Unknown"),
+                                        "divaId": line.get("divaId", "Unknown"),
+                                        "sev": line.get("sev", False),
+                                    }
+                                    for line in message.get("lines", [])
+                                ],
+                            }
+                        )
+                    except (TypeError, ValueError) as exc:
+                        raise MvgApiError("Bad API call: Could not parse message data") from exc
             return messages
         except (AssertionError, KeyError) as exc:
             raise MvgApiError("Failed to retrieve messages") from exc
