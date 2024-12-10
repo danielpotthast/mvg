@@ -24,6 +24,7 @@ class Endpoint(Enum):
     """MVG API endpoints with URLs and arguments."""
 
     FIB_LOCATION: tuple[str, list[str]] = ("/locations", ["query"])
+    FIB_MESSAGES: tuple[str, list[str]] = ("/messages", [])
     FIB_NEARBY: tuple[str, list[str]] = ("/stations/nearby", ["latitude", "longitude"])
     FIB_DEPARTURE: tuple[str, list[str]] = (
         "/departures",
@@ -45,6 +46,7 @@ class TransportType(Enum):
     REGIONAL_BUS: tuple[str, str] = ("Regionalbus", "mdi:bus")
     SEV: tuple[str, str] = ("SEV", "mdi:taxi")
     SCHIFF: tuple[str, str] = ("Schiff", "mdi:ferry")
+    UNKNOWN: tuple[str, str] = ("Unbekannt", "mdi:help-circle-outline")
 
     @classmethod
     def all(cls) -> list[TransportType]:
@@ -427,3 +429,55 @@ class MvgApi:
         return asyncio.run(
             self.departures_async(self.station_id, limit, offset, transport_types)
         )
+
+    @staticmethod
+    async def messages_async() -> list[dict[str, Any]]:
+        """
+        Retrieve a list of all messages.
+
+        :raises MvgApiError: raised on communication failure or unexpected result
+        :return: a list of messages as dictionary
+        """
+        try:
+            result = await MvgApi.__api(Base.FIB, Endpoint.FIB_MESSAGES)
+            assert isinstance(result, list)
+
+            messages: list[dict[str, Any]] = []
+            for message in result[:50]:
+                try:
+                    messages.append(
+                        {
+                            "title": message.get("title", "Unknown"),
+                            "description": message.get("description", "No description available"),
+                            "publication": int(message.get("publication", 0) / 1000),
+                            "validFrom": int(message.get("validFrom", 0) / 1000),
+                            "validTo": int(message.get("validTo", 0) / 1000),
+                            "type": message.get("type", "Unknown"),
+                            "provider": message.get("provider", "Unknown"),
+                            "lines": [
+                                {
+                                    "label": line.get("label", "Unknown"),
+                                    "transportType": TransportType[line.get("transportType", "UNKNOWN")].value[0],
+                                    "network": line.get("network", "Unknown"),
+                                    "divaId": line.get("divaId", "Unknown"),
+                                    "sev": line.get("sev", False),
+                                }
+                                for line in message.get("lines", [])
+                            ],
+                        }
+                    )
+                except (TypeError, ValueError) as exc:
+                    raise MvgApiError("Bad API call: Could not parse message data") from exc
+            return messages
+        except (AssertionError, KeyError) as exc:
+            raise MvgApiError("Failed to retrieve messages") from exc
+
+    @staticmethod
+    def messages() -> list[dict[str, Any]]:
+        """
+        Retrieve a list of all messages.
+
+        :raises MvgApiError: raised on communication failure oder unexpected result
+        :return: a list of messages as dictionary
+        """
+        return asyncio.run(MvgApi.messages_async())

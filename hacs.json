@@ -1,7 +1,9 @@
 {
   "name": "MVG",
+  "domains": ["sensor"],
   "content_in_root": false,
   "render_readme": true,
   "iot_class": "cloud_polling",
-  "country": "DE"
+  "country": "DE",
+  "homeassistant": "2023.12.0"
 }
