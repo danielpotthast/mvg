@@ -121,8 +121,9 @@ class MVGSensor(SensorEntity):
         """Return the state attributes."""
         if not (dep := self.data.departures):
             return None
-        attr = dep[0]  # next depature attributes
+        attr = dep[0]  # next departure attributes
         attr["departures"] = deepcopy(dep)  # all departures dictionary
+        attr["messages"] = deepcopy(self.data.messages)  # all messages dictionary
         return attr
 
     @property
@@ -207,3 +208,6 @@ class MVGData:
                 _nextdep[k] = _departure.get(k, "")
             _nextdep["time_in_mins"] = time_to_departure
             self.departures.append(_nextdep)
+
+        # Fetch messages and store them in the data object
+        self.messages = await self.mvg.messages_async()
