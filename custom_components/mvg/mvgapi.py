@@ -6,12 +6,17 @@ import asyncio
 import re
 from enum import Enum
 from typing import Any
+import time
 import random
 
 import aiohttp
 from furl import furl
 
 MVGAPI_DEFAULT_LIMIT = 10  # API defaults to 10, limits to 100
+
+# Global rate limiting state
+_rate_limit_until = 0  # Timestamp until when to wait
+_rate_limit_backoff = 60  # Start with 60 seconds backoff for rate limiting
 
 
 class Base(Enum):
@@ -110,6 +115,14 @@ class MvgApi:
         :raises MvgApiError: raised on communication failure or unexpected result
         :return: the response as JSON object
         """
+        global _rate_limit_until, _rate_limit_backoff
+        
+        # Check if we're still in a rate limit period
+        current_time = time.time()
+        if current_time < _rate_limit_until:
+            # Still rate limited, return empty list
+            return []
+        
         url = furl(base.value)
         url /= endpoint.value[0]
         url.set(query_params=args)
@@ -123,22 +136,31 @@ class MvgApi:
                     async with session.get(
                         url.url,
                     ) as resp:
-                        if resp.status in (502, 503, 509):
+                        if resp.status == 509:
+                            # Rate limiting - implement longer backoff
+                            _rate_limit_until = current_time + _rate_limit_backoff
+                            _rate_limit_backoff = min(_rate_limit_backoff * 2, 600)  # Max 10 minutes
+                            return []
+                        elif resp.status in (502, 503):
+                            # Server errors - shorter retry
                             if attempt < max_retries:
                                 delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
                                 await asyncio.sleep(delay)
                                 continue
                             else:
                                 return []
-                        if resp.status != 200:
+                        elif resp.status == 200:
+                            # Success - reset rate limit backoff
+                            _rate_limit_backoff = 60
+                            if resp.content_type != "application/json":
+                                raise MvgApiError(
+                                    f"Bad API call: Got content type {resp.content_type} from {url.url}"
+                                )
+                            return await resp.json()
+                        else:
                             raise MvgApiError(
                                 f"Bad API call: Got response ({resp.status}) from {url.url}"
                             )
-                        if resp.content_type != "application/json":
-                            raise MvgApiError(
-                                f"Bad API call: Got content type {resp.content_type} from {url.url}"
-                            )
-                        return await resp.json()
 
             except aiohttp.ClientError as exc:
                 if attempt < max_retries:
