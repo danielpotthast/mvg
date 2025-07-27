@@ -123,7 +123,7 @@ class MvgApi:
                     async with session.get(
                         url.url,
                     ) as resp:
-                        if resp.status in (502, 503):
+                        if resp.status in (502, 503, 509):
                             if attempt < max_retries:
                                 delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
                                 await asyncio.sleep(delay)
