@@ -6,6 +6,7 @@ import asyncio
 import re
 from enum import Enum
 from typing import Any
+import random
 
 import aiohttp
 from furl import furl
@@ -113,25 +114,43 @@ class MvgApi:
         url /= endpoint.value[0]
         url.set(query_params=args)
 
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    url.url,
-                ) as resp:
-                    if resp.status != 200:
-                        raise MvgApiError(
-                            f"Bad API call: Got response ({resp.status}) from {url.url}"
-                        )
-                    if resp.content_type != "application/json":
-                        raise MvgApiError(
-                            f"Bad API call: Got content type {resp.content_type} from {url.url}"
-                        )
-                    return await resp.json()
+        max_retries = 3
+        base_delay = 1  # Base delay in seconds
+        
+        for attempt in range(max_retries + 1):
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(
+                        url.url,
+                    ) as resp:
+                        if resp.status in (502, 503):
+                            if attempt < max_retries:
+                                delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                                await asyncio.sleep(delay)
+                                continue
+                            else:
+                                return []
+                        if resp.status != 200:
+                            raise MvgApiError(
+                                f"Bad API call: Got response ({resp.status}) from {url.url}"
+                            )
+                        if resp.content_type != "application/json":
+                            raise MvgApiError(
+                                f"Bad API call: Got content type {resp.content_type} from {url.url}"
+                            )
+                        return await resp.json()
 
-        except aiohttp.ClientError as exc:
-            raise MvgApiError(
-                f"Bad API call: Got {str(type(exc))} from {url.url}"
-            ) from exc
+            except aiohttp.ClientError as exc:
+                if attempt < max_retries:
+                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                    await asyncio.sleep(delay)
+                    continue
+                else:
+                    raise MvgApiError(
+                        f"Bad API call: Got {str(type(exc))} from {url.url}"
+                    ) from exc
+        
+        return []
 
     @staticmethod
     async def station_ids_async() -> list[str]:

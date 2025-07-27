@@ -181,9 +181,9 @@ class MVGData:
                 if self._products
                 else None,
             )
-        except ValueError:
+        except (ValueError, Exception) as e:
             self.departures = []
-            _LOGGER.warning("Returned data not understood")
+            _LOGGER.warning("Failed to fetch departures: %s", str(e))
             return
         self.departures = []
         for _departure in _departures:
@@ -210,4 +210,8 @@ class MVGData:
             self.departures.append(_nextdep)
 
         # Fetch messages and store them in the data object
-        self.messages = await self.mvg.messages_async()
+        try:
+            self.messages = await self.mvg.messages_async()
+        except Exception as e:
+            self.messages = []
+            _LOGGER.warning("Failed to fetch messages: %s", str(e))
