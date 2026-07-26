@@ -8,15 +8,21 @@
 
 # HACS-Plugin: MVG
 
-The `mvg` sensor will give you the departure time of the next bus, tram, subway, or train at the next station or stop in the Munich public transport network. Additional details such as the line number and destination are present in the attributes.
+The `mvg` sensor will give you the departure time of the next bus, tram, subway, or train at the next station or stop in the Munich public transport network. Additional details such as the line number and destination are present in the attributes, including a `messages` attribute with current incidents affecting the station's lines.
 
 ## Credits
 
-I've copied and adapted the code from [fellnerse](https://github.com/fellnerse)’s [PR](https://github.com/home-assistant/core/pull/97271).
+I've copied and adapted the code from [fellnerse](https://github.com/fellnerse)’s [PR](https://github.com/home-assistant/core/pull/97271). Departures, stations and incident messages are fetched using the [mvg](https://pypi.org/project/mvg/) PyPI package.
 
-## Configuration
+## Setup
 
-To enable this sensor, add the following lines to your `configuration.yaml` file:
+Add the integration via **Settings → Devices & Services → Add Integration → MVG** and search for your station. Destinations, lines, modes of transport, time offset and number of departures can be adjusted afterwards via the integration's **Configure** options.
+
+## Configuration via YAML (deprecated)
+
+Configuring via `configuration.yaml` is deprecated but still supported for migration: existing entries are automatically imported as UI config entries on startup, after which the YAML block can be removed.
+
+To enable this sensor via YAML, add the following lines to your `configuration.yaml` file:
 
 ```yaml
 # Example configuration.yaml entry

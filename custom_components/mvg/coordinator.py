@@ -9,8 +9,9 @@ from typing import Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from mvg import MvgApi, MvgApiError, TransportType
+from mvg import MvgApi, TransportType
 
+from .api_resilience import call_with_resilience
 from .const import DOMAIN, SCAN_INTERVAL
 from .messages import fetch_incident_messages
 
@@ -48,18 +49,40 @@ class MvgDataUpdateCoordinator(DataUpdateCoordinator[MvgData]):
         )
 
     async def _async_update_data(self) -> MvgData:
-        """Fetch departures and incident messages from the MVG API."""
-        try:
-            departures, messages = await asyncio.gather(
-                MvgApi.departures_async(
+        """Fetch departures and incident messages from the MVG API.
+
+        Departures and messages are treated independently: a failure fetching one
+        doesn't blank out the other. If a previous successful poll exists, its data
+        is kept as a fallback; only a departures failure on the very first refresh
+        (no fallback data available) fails the whole update.
+        """
+        previous = self.data
+
+        departures_result, messages_result = await asyncio.gather(
+            call_with_resilience(
+                lambda: MvgApi.departures_async(
                     station_id=self._station_id,
                     limit=self._number,
                     offset=self._timeoffset,
                     transport_types=self._transport_types,
-                ),
-                fetch_incident_messages(),
-            )
-        except MvgApiError as exc:
-            raise UpdateFailed(f"Error communicating with MVG API: {exc}") from exc
+                )
+            ),
+            call_with_resilience(fetch_incident_messages),
+            return_exceptions=True,
+        )
+
+        if isinstance(departures_result, BaseException):
+            _LOGGER.warning("Could not update MVG departures: %s", departures_result)
+            if previous is None:
+                raise UpdateFailed(f"Error fetching departures: {departures_result}") from departures_result
+            departures = previous.departures
+        else:
+            departures = departures_result
+
+        if isinstance(messages_result, BaseException):
+            _LOGGER.warning("Could not update MVG incident messages: %s", messages_result)
+            messages = previous.messages if previous is not None else []
+        else:
+            messages = messages_result
 
         return MvgData(departures=departures, messages=messages)
