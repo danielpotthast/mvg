@@ -1,0 +1,40 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add MVG station",
+        "description": "Search for a station or stop in the Munich public transport network.",
+        "data": {
+          "station": "Station",
+          "name": "Name"
+        }
+      }
+    },
+    "error": {
+      "invalid_station": "Station could not be found."
+    },
+    "abort": {
+      "already_configured": "This station is already configured.",
+      "invalid_station": "Station could not be found."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "destinations": "Destinations (comma-separated)",
+          "lines": "Lines (comma-separated)",
+          "products": "Modes of transport",
+          "timeoffset": "Time offset (minutes)",
+          "number": "Number of departures"
+        }
+      }
+    }
+  },
+  "issues": {
+    "deprecated_yaml": {
+      "title": "The MVG YAML configuration is deprecated",
+      "description": "MVG stations configured in `configuration.yaml` have been imported automatically as config entries. You can now remove the `sensor: - platform: mvg` block from `configuration.yaml`."
+    }
+  }
+}

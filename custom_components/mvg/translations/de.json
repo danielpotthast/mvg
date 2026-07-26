@@ -1,0 +1,40 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "MVG-Station hinzufügen",
+        "description": "Suche nach einer Station oder Haltestelle im Münchner Verkehrsnetz.",
+        "data": {
+          "station": "Station",
+          "name": "Name"
+        }
+      }
+    },
+    "error": {
+      "invalid_station": "Station konnte nicht gefunden werden."
+    },
+    "abort": {
+      "already_configured": "Diese Station ist bereits konfiguriert.",
+      "invalid_station": "Station konnte nicht gefunden werden."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "destinations": "Ziele (kommagetrennt)",
+          "lines": "Linien (kommagetrennt)",
+          "products": "Verkehrsmittel",
+          "timeoffset": "Zeitversatz (Minuten)",
+          "number": "Anzahl Abfahrten"
+        }
+      }
+    }
+  },
+  "issues": {
+    "deprecated_yaml": {
+      "title": "Die YAML-Konfiguration der MVG-Integration ist veraltet",
+      "description": "MVG-Stationen aus der `configuration.yaml` wurden automatisch als Config Entries importiert. Der Block `sensor: - platform: mvg` kann jetzt aus der `configuration.yaml` entfernt werden."
+    }
+  }
+}
